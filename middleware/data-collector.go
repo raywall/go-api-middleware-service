@@ -20,7 +20,7 @@ import (
 func DataEnrichment() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger, _ := zap.NewProduction()
-		defer logger.Sync()
+		defer func() { _ = logger.Sync() }()
 
 		// Extract x-app-correlationID header
 		correlationID := c.GetHeader("x-app-correlationID")

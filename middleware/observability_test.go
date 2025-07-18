@@ -68,7 +68,7 @@ func TestObservability(t *testing.T) {
 		router := gin.New()
 		router.Use(Observability(client))
 		router.GET("/test", func(c *gin.Context) {
-			c.Error(errors.New("test error"))
+			_ = c.Error(errors.New("test error"))
 			c.AbortWithStatus(http.StatusInternalServerError)
 		})
 

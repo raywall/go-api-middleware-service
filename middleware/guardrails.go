@@ -13,7 +13,7 @@ import (
 func Guardrails() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger, _ := zap.NewProduction()
-		defer logger.Sync()
+		defer func() { _ = logger.Sync() }()
 
 		// Skip if request is already aborted
 		if c.IsAborted() {

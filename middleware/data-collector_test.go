@@ -26,7 +26,7 @@ func TestDataEnrichment(t *testing.T) {
 		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			receivedCorrelationID = r.Header.Get("x-app-correlationID")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"credit_score": 750.0}`))
+			_, _ = w.Write([]byte(`{"credit_score": 750.0}`))
 		}))
 		defer mockServer.Close()
 
@@ -92,7 +92,7 @@ func TestDataEnrichment(t *testing.T) {
 		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			receivedCorrelationID = r.Header.Get("x-app-correlationID")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"credit_score": 750.0}`))
+			_, _ = w.Write([]byte(`{"credit_score": 750.0}`))
 		}))
 		defer mockServer.Close()
 
@@ -214,7 +214,7 @@ func TestDataEnrichment(t *testing.T) {
 		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			receivedCorrelationID = r.Header.Get("x-app-correlationID")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"credit_score": 750.0}`))
+			_, _ = w.Write([]byte(`{"credit_score": 750.0}`))
 		}))
 		defer mockServer.Close()
 

@@ -31,11 +31,11 @@ func Observability(client StatsClient) gin.HandlerFunc {
 			"status:" + strconv.Itoa(status), // Convert status to string properly
 		}
 
-		client.Incr("request.count", tags, 1)
-		client.Histogram("request.duration", duration, tags, 1)
+		_ = client.Incr("request.count", tags, 1)
+		_ = client.Histogram("request.duration", duration, tags, 1)
 
 		if c.Errors != nil {
-			client.Incr("request.error", tags, 1)
+			_ = client.Incr("request.error", tags, 1)
 		}
 	}
 }
