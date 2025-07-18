@@ -1,4 +1,4 @@
-# Middleware Strategy for Microservices
+# Middleware Strategy for Go Microservices
 
 This is a high-performance Go microservice designed to calculate loan pricing rates by intermediating calls to an external decision engine. It is built to be resilient, scalable, and observable, capable of handling millions of requests. The service uses middleware layers for observability (Datadog metrics), data enrichment, and guardrails to ensure accurate pricing and prevent failures.
 
