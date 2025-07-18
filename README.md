@@ -1,4 +1,4 @@
-# Pricing Microservice
+# Middleware Strategy for Microservices
 
 This is a high-performance Go microservice designed to calculate loan pricing rates by intermediating calls to an external decision engine. It is built to be resilient, scalable, and observable, capable of handling millions of requests. The service uses middleware layers for observability (Datadog metrics), data enrichment, and guardrails to ensure accurate pricing and prevent failures.
 
@@ -16,16 +16,16 @@ This is a high-performance Go microservice designed to calculate loan pricing ra
 ```
 
 pricing-service/
-├── api/ # HTTP handlers and routes
-├── middleware/ # Middleware for observability, enrichment, and guardrails
-├── service/ # Business logic (decision engine integration)
-├── model/ # Data structures (request/response models)
-├── config/ # Configuration loading (e.g., Datadog, timeouts)
-├── test_pricing.sh # Test script for Linux/macOS
+├── api/             # HTTP handlers and routes
+├── middleware/      # Middleware for observability, enrichment, and guardrails
+├── service/         # Business logic (decision engine integration)
+├── model/           # Data structures (request/response models)
+├── config/          # Configuration loading (e.g., Datadog, timeouts)
+├── test_pricing.sh  # Test script for Linux/macOS
 ├── test_pricing.bat # Test script for Windows
-├── doc.go # Package documentation
-├── main.go # Service entry point
-└── README.md # This file
+├── doc.go           # Package documentation
+├── main.go          # Service entry point
+└── README.md        # This file
 
 ```
 
