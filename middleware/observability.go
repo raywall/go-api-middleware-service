@@ -16,7 +16,7 @@ type StatsClient interface {
 }
 
 // Observability logs request metrics to a statsd-compatible service, including request count, duration, and errors.
-// It captures the request's endpoint, method, status, and duration, and sends them to the provided StatsClient.
+// It captures the request's endpoint, method, status, and duration, and sends them to the provided StatsClient
 func Observability(client StatsClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
