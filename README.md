@@ -1,152 +1,155 @@
-# Middleware Strategy for Go Microservices
+# Record Query Microservice
 
-This is a high-performance Go microservice designed to calculate loan pricing rates by intermediating calls to an external decision engine. It is built to be resilient, scalable, and observable, capable of handling millions of requests. The service uses middleware layers for observability (Datadog metrics), data enrichment, and guardrails to ensure accurate pricing and prevent failures.
+This is a Go-based microservice for querying records from a MySQL database via an HTTP API. It uses the Gin framework for routing, Datadog for observability (metrics and tracing), and a middleware chain for request processing. The service is designed to be lightweight, scalable, and observable.
 
 ## Features
 
-- **HTTP Endpoint**: Exposes a `/pricing` POST endpoint to process loan pricing requests.
-- **Observability**: Logs metrics (request count, duration, errors) to Datadog.
-- **Data Enrichment**: Fetches additional data (e.g., credit score) to enhance pricing decisions.
-- **Guardrails**: Validates calculated rates to prevent invalid or erroneous results.
-- **Resilience**: Uses a circuit breaker for calls to the external decision engine.
-- **Scalability**: Stateless design for horizontal scaling.
-
-## Project Structure
-
-```
-
-pricing-service/
-├── api/             # HTTP handlers and routes
-├── middleware/      # Middleware for observability, enrichment, and guardrails
-├── service/         # Business logic (decision engine integration)
-├── model/           # Data structures (request/response models)
-├── config/          # Configuration loading (e.g., Datadog, timeouts)
-├── test_pricing.sh  # Test script for Linux/macOS
-├── test_pricing.bat # Test script for Windows
-├── doc.go           # Package documentation
-├── main.go          # Service entry point
-└── README.md        # This file
-
-```
+- **HTTP API**: Exposes a POST `/consulta` endpoint to query records by user ID.
+- **Database Integration**: Connects to a MySQL database to retrieve records.
+- **Observability**: Integrates with Datadog for metrics and tracing, and uses structured logging with `slog`.
+- **Middleware**: Supports extensible middleware for observability, validation, and business logic.
+- **Containerized Services**: Uses Docker Compose to manage dependencies (MySQL, Datadog).
 
 ## Prerequisites
 
 - **Go**: Version 1.18 or higher.
-- **Datadog**: Agent running locally or configured for remote metrics (default: `127.0.0.1:8125`).
-- **curl**: For testing (included in macOS and Windows 10/11).
-- **jq** (optional): For formatted JSON output in tests (install via `brew install jq` on macOS or download for Windows).
-- **External Decision Engine**: Mocked in the example; replace with your service URL.
+- **Docker** and **Docker Compose**: For running MySQL and Datadog services.
+- **Datadog API Key**: Required for Datadog observability (set as `DD_API_KEY` environment variable).
+- **Make**: For running build and service management commands.
 
-## Installation
+## Setup
 
-1. Clone the repository:
+1. **Clone the Repository**:
 
    ```bash
    git clone <repository-url>
-   cd pricing-service
+   cd <repository-directory>
    ```
 
-2. Install dependencies:
-   ```bash
-   go mod tidy
-   ```
-3. Ensure the Datadog agent is running or configured.
-
-## Running the Service
-
-1. Start the service:
+2. **Install Dependencies**:
+   Ensure Go dependencies are installed and code is formatted:
 
    ```bash
-   go run main.go
+   make deps
    ```
 
-   The service will listen on `http://localhost:8080`.
+3. **Set Up Datadog API Key**:
+   Export your Datadog API key as an environment variable:
 
-2. Verify the service is running by checking logs for:
-   ```
-   [GIN-debug] Listening and serving HTTP on :8080
-   ```
-
-## Testing
-
-Test the `/pricing` endpoint using the provided scripts.
-
-### Linux/macOS
-
-1. Make the script executable:
    ```bash
-   chmod +x test_pricing.sh
+   export DD_API_KEY=your-datadog-api-key
    ```
-2. Run the test:
+
+4. **Start Services**:
+   Start the MySQL and Datadog containers using Docker Compose:
+
    ```bash
-   ./test_pricing.sh
+   make services
    ```
 
-### Windows
+   This command runs the `config/run-services.sh` script to initialize the services defined in `config/docker-compose.yml`.
 
-1. Run the test:
-   ```cmd
-   test_pricing.bat
+5. **Build the Application**:
+   Compile the Go code to generate the binary:
+   ```bash
+   make build
    ```
 
-**Example Payload**:
+## Usage
 
-```json
-{
-  "loan_amount": 10000.0,
-  "customer_id": "CUST12345"
-}
-```
+1. **Run the Application**:
+   Start the microservice, which will listen on port 8080:
 
-**Expected Output (Success)**:
+   ```bash
+   make run
+   ```
 
-```json
-{
-    "rate": 5.0,
-    "status": "success"
-}
-Requisição enviada com sucesso!
-```
+2. **Query the API**:
+   Send a POST request to the `/consulta` endpoint with a JSON payload containing the `user_id` field. Example using `curl`:
 
-**Expected Output (Error)**:
+   ```bash
+   curl -X POST http://localhost:8080/consulta -H "Content-Type: application/json" -d '{"user_id": "12345", "name": "optional-name"}'
+   ```
 
-```json
-{
-    "error": "missing enrichment data"
-}
-Erro ao enviar a requisição.
-```
+   **Example Response (Success)**:
 
-## Debugging
+   ```json
+   [
+     {
+       "id": "12345",
+       "name": "John Doe"
+     }
+   ]
+   ```
 
-- **Logs**: Check the service logs for errors (e.g., `zap` logs in `middleware/data_enrichment.go`).
-- **Datadog Metrics**: Monitor `pricing_service.request.count`, `pricing_service.request.duration`, and `pricing_service.request.error`.
-- **Common Issues**:
-  - `"missing enrichment data"`: Ensure `c.Set("enriched_data", ...)` is called in `middleware/data_enrichment.go`.
-  - HTTP 400/500: Verify the payload format and decision engine connectivity.
+   **Example Response (Error)**:
+
+   ```json
+   {
+     "error": "Payload inválido: missing user_id"
+   }
+   ```
+
+3. **View Logs**:
+   Monitor Datadog agent logs to inspect service activity. Use the following commands to filter logs:
+   - General service logs:
+     ```bash
+     tail -f /var/log/datadog/agent.log | grep "sample_service"
+     ```
+   - Logs for a specific user ID (e.g., `abc123`):
+     ```bash
+     tail -f /var/log/datadog/agent.log | grep "user_id:abc123"
+     ```
+   - Logs for a specific action (e.g., `login`, though not implemented in this service):
+     ```bash
+     tail -f /var/log/datadog/agent.log | grep "action:login"
+     ```
+   - Metrics logs for request counts:
+     ```bash
+     tail -f /var/log/datadog/agent.log | grep "sample_service.registros.requests_total"
+     ```
+
+## Makefile Commands
+
+- `make services`: Starts MySQL and Datadog containers.
+- `make run`: Runs the Go application with Datadog observability enabled.
+- `make build`: Compiles the Go code into a binary.
+- `make stop`: Stops and removes Docker containers.
+- `make status`: Checks the status of Docker containers.
+- `make test`: Runs all tests with verbose output.
+- `make bench`: Runs benchmarks with memory profiling.
+- `make clean`: Removes the binary and stops Docker containers.
+- `make deps`: Installs dependencies and formats code.
 
 ## Configuration
 
-- **Datadog**: Update the agent address in `main.go` if not using `127.0.0.1:8125`.
-- **Timeouts**: Adjust HTTP client and circuit breaker timeouts in `service/decision_engine.go`.
-- **Endpoint**: Modify the decision engine URL in `service/decision_engine.go`.
+- **Database**: The MySQL connection string is set to `dbuser:senha@tcp(localhost:3306)/db?parseTime=true`. Update the credentials and host in `database.go` if needed.
+- **Datadog**: The Datadog agent is expected at `127.0.0.1:8125`. Ensure the agent is running via `make services`.
+- **Port**: The HTTP server listens on port `8080`.
 
-## Future Improvements
+## Project Structure
 
-- Add unit and integration tests for middleware and handlers.
-- Implement caching (e.g., Redis) for enriched data.
-- Add structured logging for better traceability.
-- Externalize configuration using environment variables or a config file.
+- `main.go`: Configures the HTTP server, middleware, and routes.
+- `database.go`: Manages MySQL connections and queries.
+- `metrics.go`: Handles Datadog metrics collection.
+- `models.go`: Defines data structures for API and database interactions.
+- `doc.go`: Package-level documentation for the microservice.
+- `config/docker-compose.yml`: Docker Compose configuration for MySQL and Datadog.
+- `config/run-services.sh`: Script to start services with the Datadog API key.
 
-## Datadog
+## Error Handling
 
-# Filtrar logs do Agent por uma tag ou serviço
+The service logs errors using `slog` and returns appropriate HTTP status codes:
 
-tail -f /var/log/datadog/agent.log | grep "sample_service"
-tail -f /var/log/datadog/agent.log | grep "user_id:abc123"
-tail -f /var/log/datadog/agent.log | grep "action:login"
-tail -f /var/log/datadog/agent.log | grep "sample_service.consulta.requests_total"
+- `400 Bad Request`: For invalid payloads.
+- `500 Internal Server Error`: For database or processing errors.
 
-## License
+Metrics are recorded for each request to the `/consulta` endpoint using the Datadog statsd client.
 
-MIT License
+## Troubleshooting
+
+- **Datadog API Key Error**: Ensure `DD_API_KEY` is set before running `make services`.
+- **Database Connection Failure**: Verify MySQL is running and accessible at `localhost:3306`.
+- **Log Inspection**: Use the `tail -f` commands above to debug issues.
+
+For further details, refer to the [package documentation](doc.go).
