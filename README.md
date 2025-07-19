@@ -138,6 +138,15 @@ Erro ao enviar a requisição.
 - Add structured logging for better traceability.
 - Externalize configuration using environment variables or a config file.
 
+## Datadog
+
+# Filtrar logs do Agent por uma tag ou serviço
+
+tail -f /var/log/datadog/agent.log | grep "sample_service"
+tail -f /var/log/datadog/agent.log | grep "user_id:abc123"
+tail -f /var/log/datadog/agent.log | grep "action:login"
+tail -f /var/log/datadog/agent.log | grep "sample_service.consulta.requests_total"
+
 ## License
 
 MIT License

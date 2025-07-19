@@ -1,0 +1,59 @@
+version: "3.8"
+
+name: services
+
+services:
+  datadog:
+    image: datadog/agent:latest
+    container_name: datadog-agent
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.com
+      - DD_SERVICE=sample_service
+      - DD_ENV=prod
+      - DD_LOG_LEVEL=debug
+    ports:
+      - "8126:8126"
+      - "8125:8125"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    restart: unless-stopped
+    networks:
+      - services
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=dbuser
+      - MYSQL_PASSWORD=senha
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - services
+
+  redis:
+    image: redis:7.0
+    container_name: redis-db
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - services
+
+networks:
+  services:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
